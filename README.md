@@ -93,4 +93,4 @@ Run `plaude --about` for the full disclosure.
 
 ## License
 
-MIT OR Apache-2.0
+MIT
