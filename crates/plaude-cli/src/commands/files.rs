@@ -119,12 +119,41 @@ async fn pull_one(args: PullOneArgs, provider: &dyn TransportProvider, config_di
     let asr_path = dir.join(format!("{}.{ASR_EXTENSION}", recording_id.as_str()));
     let wav_size = meta.as_ref().map_or(0, |m| m.wav_size());
     let asr_size = meta.as_ref().map_or(0, |m| m.asr_size());
+
     let wav_written = pull_file(transport.as_ref(), &recording_id, FileKind::Wav, wav_size, &wav_path, args.resume).await?;
-    // ASR sidecar download is best-effort — BLE transport may not
-    // support it separately from the WAV.
+    // ASR sidecar — best-effort
     let asr_written = pull_file(transport.as_ref(), &recording_id, FileKind::Asr, asr_size, &asr_path, args.resume)
         .await
         .unwrap_or_default();
+
+    // If the WAV file was written but doesn't start with RIFF (BLE
+    // path: device sends raw Opus frames as the "recording"), save
+    // the raw data as .asr and decode it to a playable PCM WAV.
+    if wav_written {
+        if let Ok(raw_data) = tokio::fs::read(&wav_path).await {
+            if raw_data.len() >= 4 && &raw_data[..4] != b"RIFF" && is_likely_opus(&raw_data) {
+                // Not a real WAV — it's raw Opus from BLE. Save as .asr.
+                tokio::fs::write(&asr_path, &raw_data).await.unwrap_or_default();
+                // Decode Opus → PCM WAV
+                match super::decode::opus_to_wav(&raw_data) {
+                    Ok(wav_data) => {
+                        tokio::fs::write(&wav_path, &wav_data)
+                            .await
+                            .map_err(|e| DispatchError::Runtime(format!("failed to write decoded WAV: {e}")))?;
+                        let bar = ProgressBar::new(wav_data.len() as u64);
+                        if let Ok(style) = ProgressStyle::with_template(PROGRESS_TEMPLATE) {
+                            bar.set_style(style.progress_chars(PROGRESS_CHARS));
+                        }
+                        bar.set_message(format!("{} decoded wav", recording_id.as_str()));
+                        bar.set_position(wav_data.len() as u64);
+                        bar.finish();
+                    }
+                    Err(e) => eprintln!("warning: could not decode Opus to WAV: {e}"),
+                }
+            }
+        }
+    }
+
     if !wav_written && !asr_written {
         println!("{} {}", recording_id.as_str(), ALREADY_UP_TO_DATE_MSG);
     }
@@ -163,12 +192,51 @@ async fn pull_file(
     if resume && file_is_already_complete(path, expected_size).await? {
         return Ok(false);
     }
+    // Show a progress bar during download. For BLE transfers this can
+    // take minutes; for USB/sim it's instant.
+    let bar = ProgressBar::new(expected_size);
+    if let Ok(style) = ProgressStyle::with_template(PROGRESS_TEMPLATE) {
+        bar.set_style(style.progress_chars(PROGRESS_CHARS));
+    }
+    bar.set_message(format!("{} {}", id.as_str(), kind.label()));
+    if expected_size == 0 {
+        bar.set_style(ProgressStyle::default_spinner());
+    }
+    bar.enable_steady_tick(std::time::Duration::from_millis(200));
+
     let bytes = match kind {
         FileKind::Wav => transport.read_recording(id).await,
         FileKind::Asr => transport.read_recording_asr(id).await,
     };
-    let bytes = bytes.map_err(|e| DispatchError::from_transport_error(&e))?;
-    write_with_progress(path, &bytes, id, kind).await
+    let bytes = bytes.map_err(|e| {
+        bar.abandon();
+        DispatchError::from_transport_error(&e)
+    })?;
+    bar.set_length(bytes.len() as u64);
+    bar.set_position(bytes.len() as u64);
+    bar.finish();
+
+    if tokio::fs::try_exists(path).await.unwrap_or(false) {
+        tokio::fs::remove_file(path)
+            .await
+            .map_err(|e| DispatchError::Runtime(format!("{PARTIAL_FILE_REWRITE_CONTEXT} {}: {e}", path.display())))?;
+    }
+    tokio::fs::write(path, &bytes)
+        .await
+        .map_err(|e| DispatchError::Runtime(format!("failed to write {}: {e}", path.display())))?;
+    Ok(true)
+}
+
+/// Heuristic: check if data looks like raw Opus frames (each 80 bytes,
+/// first byte is a valid Opus TOC with config >= 16 = CELT modes).
+fn is_likely_opus(data: &[u8]) -> bool {
+    if data.is_empty() || data.len() % 80 != 0 {
+        return false;
+    }
+    let toc = data[0];
+    let config = (toc >> 3) & 0x1F;
+    // Opus configs 16..31 are CELT-only modes (the Plaud uses config 23)
+    config >= 16
 }
 
 async fn file_is_already_complete(path: &Path, expected_size: u64) -> Result<bool, DispatchError> {
@@ -176,29 +244,6 @@ async fn file_is_already_complete(path: &Path, expected_size: u64) -> Result<boo
         Ok(meta) if meta.len() == expected_size => Ok(true),
         Ok(_) | Err(_) => Ok(false),
     }
-}
-
-async fn write_with_progress(path: &Path, bytes: &[u8], id: &RecordingId, kind: FileKind) -> Result<bool, DispatchError> {
-    if tokio::fs::try_exists(path).await.unwrap_or(false) {
-        tokio::fs::remove_file(path)
-            .await
-            .map_err(|e| DispatchError::Runtime(format!("{PARTIAL_FILE_REWRITE_CONTEXT} {}: {e}", path.display())))?;
-    }
-    tokio::fs::write(path, bytes)
-        .await
-        .map_err(|e| DispatchError::Runtime(format!("failed to write {}: {e}", path.display())))?;
-    render_progress(id.as_str(), kind, bytes.len() as u64);
-    Ok(true)
-}
-
-fn render_progress(id: &str, kind: FileKind, size: u64) {
-    let bar = ProgressBar::new(size);
-    if let Ok(style) = ProgressStyle::with_template(PROGRESS_TEMPLATE) {
-        bar.set_style(style.progress_chars(PROGRESS_CHARS));
-    }
-    bar.set_message(format!("{id} {}", kind.label()));
-    bar.set_position(size);
-    bar.finish();
 }
 
 fn print_list(recordings: &[Recording], output: OutputFormat) -> Result<(), DispatchError> {

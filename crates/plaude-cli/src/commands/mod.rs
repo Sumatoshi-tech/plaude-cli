@@ -4,6 +4,7 @@
 pub(crate) mod auth;
 pub(crate) mod backend;
 pub(crate) mod battery;
+pub(crate) mod decode;
 pub(crate) mod device;
 pub(crate) mod files;
 pub(crate) mod output;

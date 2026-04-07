@@ -191,11 +191,21 @@ impl Transport for BleTransport {
     }
 
     async fn read_recording(&self, id: &RecordingId) -> Result<Vec<u8>> {
+        // BLE transfers the ASR sidecar (Opus-encoded, ~27 KB for 15 s),
+        // not the WAV (PCM, ~1 MB). The WAV is only available via USB or
+        // Wi-Fi Fast Transfer.
+        //
+        // For BLE, read_recording returns the ASR data. The CLI saves
+        // it as the WAV slot; callers that need the real PCM WAV should
+        // use --backend usb.
+        self.read_recording_asr(id).await
+    }
+
+    async fn read_recording_asr(&self, id: &RecordingId) -> Result<Vec<u8>> {
         let file_id = id.as_unix_seconds() as u32;
         let mut session = self.session.lock().await;
 
-        // First get the file list to find the file size, then read it.
-        // If the file isn't in the delta list, try a generous default.
+        // Get the file list to find the exact file size.
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap_or_default()
@@ -203,7 +213,6 @@ impl Transport for BleTransport {
         let list_frame = meta_enc::get_file_list(now, 0, false);
         let responses = session.send_control_multi(list_frame, opcode::OPCODE_1A_TIMESTAMP_WINDOW).await?;
 
-        // Look up the file size from the delta listing.
         let mut file_size: Option<u32> = None;
         for resp in &responses {
             if resp.len() < 8 {
@@ -219,34 +228,16 @@ impl Transport for BleTransport {
                 off += 8;
             }
         }
-        // The device requires the exact file size in ReadFileChunk.
-        // If we don't know it (delta list empty), we can't proceed.
         let file_size = file_size.ok_or_else(|| {
             Error::NotFound(format!(
                 "recording {id} not in the device's unsynced file list — it may have already been synced by the phone app"
             ))
         })?;
-        debug!(file_id, file_size, "read_recording");
+        debug!(file_id, file_size, "read_recording_asr");
 
         let trigger = file_enc::read_file_chunk(file_id, 0, file_size);
         let data = session.read_bulk(trigger).await?;
         Ok(data)
-    }
-
-    async fn read_recording_asr(&self, id: &RecordingId) -> Result<Vec<u8>> {
-        // ASR sidecar: the device stores .WAV and .ASR files as separate
-        // entities. The ASR file has the same file_id but is accessed
-        // via a different mechanism. Based on btsnoop evidence, the
-        // bulk transfer in session C was ~76 kB — likely the ASR sidecar.
-        //
-        // The exact opcode for requesting the ASR specifically vs the WAV
-        // is not yet confirmed. For now, attempt a second read with an
-        // offset indicator. If the device protocol distinguishes WAV vs ASR
-        // by a flag in the file_id or a separate opcode, this will need
-        // adjustment after further RE.
-        //
-        // Fallback: return NotFound to let the caller skip the ASR.
-        Err(Error::NotFound(format!("ASR sidecar download over BLE not yet supported for {id}")))
     }
 
     async fn delete_recording(&self, _id: &RecordingId) -> Result<()> {

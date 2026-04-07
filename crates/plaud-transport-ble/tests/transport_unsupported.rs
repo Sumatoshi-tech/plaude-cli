@@ -77,14 +77,11 @@ async fn set_privacy_requires_auth() {
     assert_auth_required(&t.set_privacy(true).await.unwrap_err());
 }
 
-// --- Not-found: ASR sidecar download not yet supported ---
-
 #[tokio::test]
-async fn read_recording_asr_returns_not_found() {
+async fn read_recording_asr_requires_auth() {
     let t = build_transport();
     let id = RecordingId::new(SAMPLE_BASENAME).expect("valid");
-    let err = t.read_recording_asr(&id).await.unwrap_err();
-    assert!(matches!(err, Error::NotFound(_)), "expected NotFound, got {err:?}");
+    assert_auth_required(&t.read_recording_asr(&id).await.unwrap_err());
 }
 
 // --- Still-unsupported methods ---

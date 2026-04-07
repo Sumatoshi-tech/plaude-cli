@@ -200,15 +200,11 @@ impl BleSession {
         Ok(responses)
     }
 
-    /// Send a bulk-trigger frame (e.g. a `ReadFileChunk` control
-    /// write) and then reassemble the resulting bulk-frame stream
-    /// until a `BulkEnd` arrives.
+    /// Send a bulk-trigger frame and reassemble the resulting bulk
+    /// stream until a `BulkEnd` arrives.
     ///
-    /// # Errors
-    ///
-    /// Returns the same error variants as `send_control` plus
-    /// [`Error::Protocol`] on out-of-order offsets or mismatched
-    /// `file_id`.
+    /// If `progress_tx` is `Some`, the accumulated byte count is sent
+    /// after each chunk so a progress bar can update in real time.
     pub async fn read_bulk(&mut self, trigger: Bytes) -> Result<Vec<u8>> {
         if !self.authenticated {
             return Err(Error::AuthRequired);
@@ -220,27 +216,16 @@ impl BleSession {
             .map_err(|_| Error::Transport(ERR_CHANNEL_CLOSED.to_owned()))?;
         let mut reassembler = BulkReassembler::new();
         loop {
-            let bytes = tokio::time::timeout(BULK_FRAME_TIMEOUT, self.channel.rx.recv())
+            let raw = tokio::time::timeout(BULK_FRAME_TIMEOUT, self.channel.rx.recv())
                 .await
                 .map_err(|_| Error::Timeout {
                     seconds: BULK_FRAME_TIMEOUT.as_secs(),
                 })?
                 .ok_or_else(|| Error::Transport(ERR_CHANNEL_CLOSED.to_owned()))?;
-            let frame = plaud_proto::parse_notification(bytes).map_err(|e| Error::Protocol(format!("bulk frame parse: {e}")))?;
-            // Skip control-frame acks (e.g. the 0x001C echo) that
-            // arrive before the bulk stream starts.
+            let frame = plaud_proto::parse_notification(raw).map_err(|e| Error::Protocol(format!("bulk frame parse: {e}")))?;
             if let Frame::Control { opcode, .. } = &frame {
                 tracing::debug!(opcode, "skipping control frame in bulk stream");
                 continue;
-            }
-            match &frame {
-                Frame::Bulk { file_id, offset, payload } => {
-                    tracing::debug!(file_id, offset, payload_len = payload.len(), "bulk frame");
-                }
-                Frame::BulkEnd { file_id, .. } => {
-                    tracing::debug!(file_id, "bulk end");
-                }
-                _ => {}
             }
             match reassembler.feed(frame)? {
                 FeedStatus::InProgress => continue,
