@@ -238,7 +238,7 @@ impl Transport for BleTransport {
         // If the file isn't in the delta list (already consumed by a
         // prior `files list` call in a different BLE session), request
         // a generous size. The device terminates with BulkEnd regardless.
-        let file_size = file_size.unwrap_or(512 * 1024);
+        let file_size = file_size.unwrap_or(10 * 1024 * 1024);
         debug!(file_id, file_size, "read_recording_asr");
 
         let trigger = file_enc::read_file_chunk(file_id, 0, file_size);

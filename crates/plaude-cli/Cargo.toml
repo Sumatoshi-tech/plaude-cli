@@ -28,9 +28,19 @@ serde_json = { workspace = true }
 indicatif = { workspace = true }
 sha2 = { workspace = true }
 jiff = { workspace = true }
+dirs = { workspace = true }
 opus-decoder = { workspace = true }
+whisper-rs = { workspace = true, optional = true }
+hound = { workspace = true, optional = true }
+ureq = { workspace = true, optional = true }
+pyannote-rs = { workspace = true, optional = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+
+[features]
+default = ["transcribe", "diarize"]
+transcribe = ["whisper-rs", "hound", "ureq"]
+diarize = ["transcribe", "pyannote-rs"]
 
 [dev-dependencies]
 assert_cmd = { workspace = true }
