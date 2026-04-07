@@ -1,13 +1,12 @@
-//! `plaude-cli transcribe` — offline transcription via whisper.cpp.
+//! `plaude transcribe` — offline transcription via whisper.cpp.
 //!
 //! Wraps an externally-installed `whisper.cpp` CLI binary as a
 //! subprocess, passing one or more WAV files and a user-supplied
 //! GGML model path. Fully offline — no network, no cloud, no API key.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M15-whisper-transcribe.md
+//! Journey: specs/plaude-v1/journeys/M15-whisper-transcribe.md
 
-use std::path::PathBuf;
-use std::process::Command as ProcessCommand;
+use std::{path::PathBuf, process::Command as ProcessCommand};
 
 use clap::{Args, ValueEnum};
 
@@ -45,7 +44,7 @@ impl TranscribeFormat {
     }
 }
 
-/// Arguments for `plaude-cli transcribe`.
+/// Arguments for `plaude transcribe`.
 #[derive(Debug, Args)]
 pub(crate) struct TranscribeArgs {
     /// Path to the whisper.cpp binary. Also settable via `PLAUDE_WHISPER_BIN`. Defaults to `whisper-cli` on `$PATH`.

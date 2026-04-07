@@ -1,4 +1,4 @@
-//! `plaude-cli sync <dir>` — mirror every recording on the device
+//! `plaude sync <dir>` — mirror every recording on the device
 //! into a local directory with a JSON state file for idempotence.
 
 pub(crate) mod state;
@@ -41,7 +41,7 @@ const DELETED_ON_DEVICE_PREFIX: &str = "deleted on device (still on disk):";
 /// Prefix for successfully-pulled progress lines.
 const PULLED_LINE_PREFIX: &str = "pulled";
 
-/// Arguments for `plaude-cli sync`.
+/// Arguments for `plaude sync`.
 #[derive(Debug, Args)]
 pub(crate) struct SyncArgs {
     /// Destination directory. Created if missing.

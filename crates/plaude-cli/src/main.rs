@@ -1,4 +1,4 @@
-//! plaude-cli — the `plaude-cli` binary entry point.
+//! plaude — the `plaude` binary entry point.
 //!
 //! Offline CLI for the Plaud Note voice recorder. Talks to Plaud
 //! hardware directly over BLE, USB, or Wi-Fi without relying on
@@ -51,18 +51,18 @@ const MIN_USER_ARGS: usize = 2;
 
 /// Hint appended to the missing-token error so the user knows where
 /// to go next.
-const HINT_RUN_AUTH_HELP: &str = "run `plaude-cli auth --help` to store a token";
+const HINT_RUN_AUTH_HELP: &str = "run `plaude auth --help` to store a token";
 
 /// Hint appended to the rejected-token error. `bootstrap` is the
 /// name of the future M8 onboarding command.
-const HINT_RUN_BOOTSTRAP: &str = "run `plaude-cli auth bootstrap` or re-import a fresh token";
+const HINT_RUN_BOOTSTRAP: &str = "run `plaude auth bootstrap` or re-import a fresh token";
 
 /// Default timeout in seconds for transport operations.
 const DEFAULT_TIMEOUT_SECS: u64 = 30;
 
 /// Privacy disclosure printed by `--about`.
 const PRIVACY_DISCLOSURE: &str = "\
-plaude-cli — Offline CLI for the Plaud Note voice recorder.
+plaude — Offline CLI for the Plaud Note voice recorder.
 
 PRIVACY NOTICE:
 
@@ -82,7 +82,7 @@ See docs/protocol/overview.md for the full security model.";
 
 /// Offline CLI for the Plaud Note voice recorder.
 #[derive(Debug, Parser)]
-#[command(version, about, long_about = None)]
+#[command(name = "plaude", version, about, long_about = None)]
 struct Cli {
     /// Override the directory where the file-backed token store
     /// looks for (and writes) the token file. Defaults to the
@@ -225,7 +225,7 @@ fn dispatch(cli: Cli) -> Result<(), DispatchError> {
         eprintln!("{USB_DEPRECATION_NOTICE}");
     }
     match cli.command {
-        None => Err(DispatchError::Usage("no subcommand supplied; run `plaude-cli --help`".to_owned())),
+        None => Err(DispatchError::Usage("no subcommand supplied; run `plaude --help`".to_owned())),
         Some(Commands::Auth(auth_cmd)) => runtime.block_on(commands::auth::run(auth_cmd, config_dir, cli.backend)),
         Some(Commands::Battery(battery_cmd)) => {
             let provider = cli.backend.provider(cli.mount.as_deref());

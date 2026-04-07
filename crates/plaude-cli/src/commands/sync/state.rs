@@ -1,4 +1,4 @@
-//! State file for `plaude-cli sync`.
+//! State file for `plaude sync`.
 //!
 //! Lives at `<dir>/.plaude-sync.json`. Records which recordings have
 //! landed on disk alongside the SHA-256 hash of the last-observed

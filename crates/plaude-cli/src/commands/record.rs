@@ -1,19 +1,20 @@
-//! `plaude-cli record` — remote recording pipeline control.
+//! `plaude record` — remote recording pipeline control.
 //!
 //! Maps `start`, `stop`, `pause`, `resume` to the corresponding
 //! [`Transport`] methods. All four require an authenticated transport.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M11-settings-record-control.md
+//! Journey: specs/plaude-v1/journeys/M11-settings-record-control.md
 
 use std::path::Path;
+
+use clap::Subcommand;
+use plaud_auth::DEFAULT_DEVICE_ID;
+use plaud_domain::AuthToken;
 
 use crate::{
     DispatchError,
     commands::{auth::build_store, backend::TransportProvider},
 };
-use clap::Subcommand;
-use plaud_auth::DEFAULT_DEVICE_ID;
-use plaud_domain::AuthToken;
 
 /// Confirmation message printed after a successful `start`.
 const MSG_STARTED: &str = "recording started";
@@ -24,7 +25,7 @@ const MSG_PAUSED: &str = "recording paused";
 /// Confirmation message printed after a successful `resume`.
 const MSG_RESUMED: &str = "recording resumed";
 
-/// `plaude-cli record` subcommand tree.
+/// `plaude record` subcommand tree.
 #[derive(Debug, Subcommand)]
 pub(crate) enum RecordCommand {
     /// Start a new recording.

@@ -94,10 +94,10 @@ async fn delete_recording_is_unsupported() {
 }
 
 #[tokio::test]
-async fn recording_control_is_unsupported() {
+async fn recording_control_requires_auth() {
     let t = build_transport();
-    assert_unsupported(&t.start_recording().await.unwrap_err());
-    assert_unsupported(&t.stop_recording().await.unwrap_err());
-    assert_unsupported(&t.pause_recording().await.unwrap_err());
-    assert_unsupported(&t.resume_recording().await.unwrap_err());
+    assert_auth_required(&t.start_recording().await.unwrap_err());
+    assert_auth_required(&t.stop_recording().await.unwrap_err());
+    assert_auth_required(&t.pause_recording().await.unwrap_err());
+    assert_auth_required(&t.resume_recording().await.unwrap_err());
 }

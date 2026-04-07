@@ -1,15 +1,15 @@
-//! End-to-end tests for `plaude-cli battery`.
+//! End-to-end tests for `plaude battery`.
 //!
 //! Every test runs against `--backend sim`; the real BLE backend is
 //! stubbed until the btleplug wire-up milestone. No hardware required.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M06-battery-device-info.md
+//! Journey: specs/plaude-v1/journeys/M06-battery-device-info.md
 
 use assert_cmd::Command;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const BACKEND_FLAG: &str = "--backend";
 const BACKEND_SIM: &str = "sim";
 const BACKEND_BLE: &str = "ble";

@@ -1,17 +1,17 @@
-//! End-to-end tests for `plaude-cli files pull-one`.
+//! End-to-end tests for `plaude files pull-one`.
 //!
 //! Runs against `--backend sim`. The sim backend pre-loads exactly
 //! one deterministic recording whose byte contents we can assert
 //! against in full.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M07-files-list-pull.md
+//! Journey: specs/plaude-v1/journeys/M07-files-list-pull.md
 
 use std::path::PathBuf;
 
 use assert_cmd::Command;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const BACKEND_FLAG: &str = "--backend";
 const BACKEND_SIM: &str = "sim";
 const SAMPLE_TOKEN: &str = "b4b48c21074f89d287c01e9f4b1ffab7";

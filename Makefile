@@ -12,7 +12,7 @@ all: build
 # Build all binaries
 .PHONY: build
 build:
-	$(CARGO) build --profile $(PROFILE) --bin plaude-cli
+	$(CARGO) build --profile $(PROFILE) --bin plaude
 
 # Show help
 .PHONY: help
@@ -34,9 +34,9 @@ man: build
 	@mkdir -p $(TARGET_DIR)/man
 	@if command -v help2man >/dev/null 2>&1; then \
 		help2man --no-info --no-discard-stderr \
-			$(TARGET_DIR)/$(PROFILE)/plaude-cli \
-			-o $(TARGET_DIR)/man/plaude-cli.1; \
-		echo "Man page generated at $(TARGET_DIR)/man/plaude-cli.1"; \
+			$(TARGET_DIR)/$(PROFILE)/plaude \
+			-o $(TARGET_DIR)/man/plaude.1; \
+		echo "Man page generated at $(TARGET_DIR)/man/plaude.1"; \
 	else \
 		echo "help2man not found — skipping man page generation"; \
 	fi
@@ -44,10 +44,10 @@ man: build
 # Install binaries (and man pages if generated)
 .PHONY: install
 install: build
-	$(CARGO) install --path crates/plaude-cli --bin plaude-cli
-	@if [ -f $(TARGET_DIR)/man/plaude-cli.1 ]; then \
+	$(CARGO) install --path crates/plaude-cli --bin plaude
+	@if [ -f $(TARGET_DIR)/man/plaude.1 ]; then \
 		mkdir -p $(HOME)/.local/share/man/man1; \
-		cp $(TARGET_DIR)/man/plaude-cli.1 $(HOME)/.local/share/man/man1/; \
+		cp $(TARGET_DIR)/man/plaude.1 $(HOME)/.local/share/man/man1/; \
 		echo "Man page installed to $(HOME)/.local/share/man/man1/"; \
 	fi
 

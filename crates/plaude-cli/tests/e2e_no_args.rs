@@ -1,17 +1,17 @@
-//! End-to-end test: `plaude-cli` with no args exits with a usage error.
+//! End-to-end test: `plaude` with no args exits with a usage error.
 //!
 //! CLIG (Command Line Interface Guidelines) mandates exit code 2 for
 //! "command was used incorrectly" — missing a required subcommand is
 //! exactly that case. We verify the exit code and that the user is
 //! shown a usage hint on stderr or stdout so they can self-recover.
 //!
-//! Journey: `specs/plaude-cli-v1/journeys/M00-scaffold.md`
+//! Journey: `specs/plaude-v1/journeys/M00-scaffold.md`
 
 use assert_cmd::Command;
 use predicates::{Predicate, str::contains};
 
 /// The compiled binary name.
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 
 /// CLIG-compliant exit code for "incorrect usage". See
 /// <https://clig.dev/#the-basics> and the sysexits(3) convention.

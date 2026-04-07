@@ -129,11 +129,7 @@ impl Transport for BleTransport {
         let total_bytes = u32::from_le_bytes([payload[16], payload[17], payload[18], payload[19]]) as u64;
 
         // Derive used_bytes proportionally from the block counts.
-        let used_bytes = if total_blocks > 0 {
-            total_bytes * used_blocks / total_blocks
-        } else {
-            0
-        };
+        let used_bytes = (total_bytes * used_blocks).checked_div(total_blocks).unwrap_or(0);
         // Recording count isn't directly available from 0x0006 — set to 0.
         // The phone app likely gets it from a different opcode or derives
         // it from the file list.
@@ -174,15 +170,26 @@ impl Transport for BleTransport {
             let total_files = u16::from_le_bytes([resp[4], resp[5]]) as usize;
             debug!(total_files, resp_len = resp.len(), "file list batch");
 
-            // Parse per-file entries (8 bytes each: file_id:u32 + size:u32)
+            // Per-file entry size depends on PDU version (from C9809v):
+            //   v1: 8 bytes (file_id:u32 + size:u32)
+            //   v2-6: 9 bytes (+ type:u8)
+            //   v7+: 10 bytes (+ type:u8 + extra:u8)
+            // Auto-detect: (payload_len - 8) / total_files gives entry size.
+            let data_bytes = resp.len().saturating_sub(8);
+            let entry_size = data_bytes.checked_div(total_files).unwrap_or(10).max(8);
+            debug!(entry_size, "file list entry size");
+
             let mut offset = 8;
             while offset + 8 <= resp.len() && recordings.len() < total_files {
                 let file_id = u32::from_le_bytes([resp[offset], resp[offset + 1], resp[offset + 2], resp[offset + 3]]);
                 let file_size = u32::from_le_bytes([resp[offset + 4], resp[offset + 5], resp[offset + 6], resp[offset + 7]]);
-                offset += 8;
+                offset += entry_size;
 
                 if let Ok(id) = RecordingId::new(format!("{file_id}")) {
-                    recordings.push(Recording::new(id, RecordingKind::Note, file_size as u64, 0));
+                    // BLE only transfers the ASR sidecar (Opus), not
+                    // the WAV (PCM). The size from the file list is
+                    // the ASR size. WAV is only available via USB.
+                    recordings.push(Recording::new(id, RecordingKind::Note, 0, file_size as u64));
                 }
             }
         }
@@ -228,11 +235,10 @@ impl Transport for BleTransport {
                 off += 8;
             }
         }
-        let file_size = file_size.ok_or_else(|| {
-            Error::NotFound(format!(
-                "recording {id} not in the device's unsynced file list — it may have already been synced by the phone app"
-            ))
-        })?;
+        // If the file isn't in the delta list (already consumed by a
+        // prior `files list` call in a different BLE session), request
+        // a generous size. The device terminates with BulkEnd regardless.
+        let file_size = file_size.unwrap_or(512 * 1024);
         debug!(file_id, file_size, "read_recording_asr");
 
         let trigger = file_enc::read_file_chunk(file_id, 0, file_size);
@@ -279,27 +285,39 @@ impl Transport for BleTransport {
     }
 
     async fn start_recording(&self) -> Result<()> {
-        Err(Error::Unsupported {
-            capability: "start_recording (opcode not yet identified from wire captures)",
-        })
+        let mut session = self.session.lock().await;
+        let frame = encode::recording::start_recording();
+        let _payload = session.send_control(frame, opcode::OPCODE_START_RECORDING).await?;
+        Ok(())
     }
 
     async fn stop_recording(&self) -> Result<()> {
-        Err(Error::Unsupported {
-            capability: "stop_recording (opcode not yet identified from wire captures)",
-        })
+        let mut session = self.session.lock().await;
+        let frame = encode::recording::stop_recording();
+        let _payload = session.send_control(frame, opcode::OPCODE_STOP_RECORDING).await?;
+        Ok(())
     }
 
     async fn pause_recording(&self) -> Result<()> {
-        Err(Error::Unsupported {
-            capability: "pause_recording (opcode not yet identified from wire captures)",
-        })
+        let mut session = self.session.lock().await;
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs() as u32;
+        let frame = encode::recording::pause_recording(now);
+        let _payload = session.send_control(frame, opcode::OPCODE_PAUSE_RECORDING).await?;
+        Ok(())
     }
 
     async fn resume_recording(&self) -> Result<()> {
-        Err(Error::Unsupported {
-            capability: "resume_recording (opcode not yet identified from wire captures)",
-        })
+        let mut session = self.session.lock().await;
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs() as u32;
+        let frame = encode::recording::resume_recording(now);
+        let _payload = session.send_control(frame, opcode::OPCODE_RESUME_RECORDING).await?;
+        Ok(())
     }
 
     async fn set_privacy(&self, on: bool) -> Result<()> {

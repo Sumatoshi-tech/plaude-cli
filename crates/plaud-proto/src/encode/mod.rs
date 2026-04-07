@@ -11,6 +11,7 @@ pub mod auth;
 pub mod device;
 pub mod file;
 pub mod metadata;
+pub mod recording;
 pub mod settings;
 
 use bytes::{BufMut, Bytes, BytesMut};

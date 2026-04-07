@@ -1,10 +1,10 @@
-//! `plaude-cli settings` — read and write device settings.
+//! `plaude settings` — read and write device settings.
 //!
 //! Settings are identified by their human-readable name (as returned
 //! by [`CommonSettingKey::name`]) and carry a [`SettingValue`] union
 //! that the CLI renders in text or JSON form.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M11-settings-record-control.md
+//! Journey: specs/plaude-v1/journeys/M11-settings-record-control.md
 
 use std::path::Path;
 
@@ -21,7 +21,7 @@ use crate::{
 /// Message printed on a successful `set` operation.
 const SET_OK_PREFIX: &str = " = ";
 
-/// `plaude-cli settings` subcommand tree.
+/// `plaude settings` subcommand tree.
 #[derive(Debug, Subcommand)]
 pub(crate) enum SettingsCommand {
     /// List all settings that have a stored value on the device.
@@ -32,7 +32,7 @@ pub(crate) enum SettingsCommand {
     Set(SettingsSetArgs),
 }
 
-/// Arguments for `plaude-cli settings list`.
+/// Arguments for `plaude settings list`.
 #[derive(Debug, Args)]
 pub(crate) struct SettingsListArgs {
     /// Output format.
@@ -40,7 +40,7 @@ pub(crate) struct SettingsListArgs {
     output: OutputFormat,
 }
 
-/// Arguments for `plaude-cli settings get`.
+/// Arguments for `plaude settings get`.
 #[derive(Debug, Args)]
 pub(crate) struct SettingsGetArgs {
     /// Setting name (e.g. `enable-vad`, `mic-gain`).
@@ -50,7 +50,7 @@ pub(crate) struct SettingsGetArgs {
     output: OutputFormat,
 }
 
-/// Arguments for `plaude-cli settings set`.
+/// Arguments for `plaude settings set`.
 #[derive(Debug, Args)]
 pub(crate) struct SettingsSetArgs {
     /// Setting name (e.g. `enable-vad`, `mic-gain`).

@@ -1,12 +1,12 @@
-//! End-to-end test: `plaude-cli --version` matches `CARGO_PKG_VERSION`.
+//! End-to-end test: `plaude --version` matches `CARGO_PKG_VERSION`.
 //!
-//! Journey: `specs/plaude-cli-v1/journeys/M00-scaffold.md`
+//! Journey: `specs/plaude-v1/journeys/M00-scaffold.md`
 
 use assert_cmd::Command;
 use predicates::str::contains;
 
 /// The compiled binary name; matches `[[bin]] name` in `Cargo.toml`.
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 
 /// Package version injected by Cargo at build time. We reference it
 /// via `env!` so the test stays in lock-step with `Cargo.toml` and

@@ -1,16 +1,16 @@
-//! End-to-end tests for `plaude-cli device info`.
+//! End-to-end tests for `plaude device info`.
 //!
 //! Every test runs against `--backend sim`. Missing-token and
 //! rejected-token failure paths are driven via the sandbox token
 //! file and the `PLAUDE_SIM_REJECT` env override.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M06-battery-device-info.md
+//! Journey: specs/plaude-v1/journeys/M06-battery-device-info.md
 
 use assert_cmd::Command;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const BACKEND_FLAG: &str = "--backend";
 const BACKEND_SIM: &str = "sim";
 const OUTPUT_FLAG: &str = "--output";
@@ -26,7 +26,7 @@ const JSON_FIRMWARE_KEY: &str = "\"firmware\"";
 const JSON_STORAGE_KEY: &str = "\"storage\"";
 const AUTH_REQUIRED_EXIT: i32 = 77;
 const AUTH_REJECTED_EXIT: i32 = 78;
-const MISSING_TOKEN_HINT: &str = "plaude-cli auth";
+const MISSING_TOKEN_HINT: &str = "plaude auth";
 const REJECTED_TOKEN_HINT: &str = "bootstrap";
 const SIM_REJECT_ENV: &str = "PLAUDE_SIM_REJECT";
 const SIM_REJECT_ON: &str = "1";

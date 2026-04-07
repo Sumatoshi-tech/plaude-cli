@@ -1,16 +1,16 @@
-//! End-to-end tests for the `plaude-cli auth` subcommand tree.
+//! End-to-end tests for the `plaude auth` subcommand tree.
 //!
 //! Every test sandboxes the token file under a per-test `tempdir`
 //! via the global `--config-dir` flag, so the user's real
 //! `~/.config/plaude/token` is never touched.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M04-auth-storage.md
+//! Journey: specs/plaude-v1/journeys/M04-auth-storage.md
 
 use assert_cmd::Command;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const SAMPLE_TOKEN: &str = "b4b48c21074f89d287c01e9f4b1ffab7";
 const FINGERPRINT_LINE: &str = "Fingerprint:";
 const STORED_LINE: &str = "Token stored";

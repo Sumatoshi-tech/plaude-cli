@@ -1,4 +1,4 @@
-//! `plaude-cli battery` — print the device battery percentage.
+//! `plaude battery` — print the device battery percentage.
 //!
 //! Hits the SIG-analogue battery path that does **not** require an
 //! auth token (matching Test 2b live evidence). Supports `--output
@@ -16,7 +16,7 @@ use crate::{
 /// Text prefix for the human-readable battery line.
 const BATTERY_TEXT_PREFIX: &str = "Battery: ";
 
-/// `plaude-cli battery` subcommand arguments.
+/// `plaude battery` subcommand arguments.
 #[derive(Debug, Args)]
 pub(crate) struct BatteryCommand {
     /// Output format. `text` is the default human-readable form;

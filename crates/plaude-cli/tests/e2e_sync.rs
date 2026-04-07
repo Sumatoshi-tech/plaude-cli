@@ -1,11 +1,11 @@
-//! End-to-end tests for `plaude-cli sync`.
+//! End-to-end tests for `plaude sync`.
 //!
 //! Uses the `PLAUDE_SIM_RECORDINGS` env var exposed by the sim
 //! backend to vary the device fixture between runs inside a single
 //! test, covering the empty/one-file/incremental/deleted/no-op
 //! matrix without needing a second process.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M09-sync.md
+//! Journey: specs/plaude-v1/journeys/M09-sync.md
 
 use std::path::{Path, PathBuf};
 
@@ -13,7 +13,7 @@ use assert_cmd::Command;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const BACKEND_FLAG: &str = "--backend";
 const BACKEND_SIM: &str = "sim";
 const SIM_RECORDINGS_ENV: &str = "PLAUDE_SIM_RECORDINGS";

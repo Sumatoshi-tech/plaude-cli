@@ -1,4 +1,4 @@
-//! `plaude-cli device` — device information, privacy toggle, and name
+//! `plaude device` — device information, privacy toggle, and name
 //! query.
 //!
 //! Requires an authenticated transport. Loads the stored token via
@@ -6,7 +6,7 @@
 //! authenticates through the active [`TransportProvider`], then
 //! queries `device_info` + `storage`.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M11-settings-record-control.md
+//! Journey: specs/plaude-v1/journeys/M11-settings-record-control.md
 
 use std::path::Path;
 
@@ -32,7 +32,7 @@ const SERIAL_HEADER: &str = "Serial:     ";
 /// Prefix for the storage line in text mode.
 const STORAGE_HEADER: &str = "Storage:    ";
 
-/// `plaude-cli device` subcommand tree.
+/// `plaude device` subcommand tree.
 #[derive(Debug, Subcommand)]
 pub(crate) enum DeviceCommand {
     /// Print a formatted summary of the connected device.
@@ -43,7 +43,7 @@ pub(crate) enum DeviceCommand {
     Name,
 }
 
-/// Arguments for `plaude-cli device privacy`.
+/// Arguments for `plaude device privacy`.
 #[derive(Debug, Args)]
 pub(crate) struct DevicePrivacyArgs {
     /// `on` enables privacy mode, `off` disables it.
@@ -69,7 +69,7 @@ const PRIVACY_ON_MSG: &str = "privacy on";
 /// Confirmation printed after `device privacy off`.
 const PRIVACY_OFF_MSG: &str = "privacy off";
 
-/// Arguments for `plaude-cli device info`.
+/// Arguments for `plaude device info`.
 #[derive(Debug, Args)]
 pub(crate) struct DeviceInfoArgs {
     /// Output format. `text` is the default human-readable form;

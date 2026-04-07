@@ -1,15 +1,15 @@
-//! End-to-end tests for `plaude-cli files list`.
+//! End-to-end tests for `plaude files list`.
 //!
 //! Runs against `--backend sim`. The sim backend pre-loads exactly
 //! one deterministic recording whose id the tests assert against.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M07-files-list-pull.md
+//! Journey: specs/plaude-v1/journeys/M07-files-list-pull.md
 
 use assert_cmd::Command;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const BACKEND_FLAG: &str = "--backend";
 const BACKEND_SIM: &str = "sim";
 const OUTPUT_FLAG: &str = "--output";
@@ -18,8 +18,8 @@ const SAMPLE_TOKEN: &str = "b4b48c21074f89d287c01e9f4b1ffab7";
 const SIM_BASENAME: &str = "1775393534";
 const TEXT_HEADER_ID: &str = "ID";
 const TEXT_HEADER_KIND: &str = "KIND";
-const TEXT_HEADER_WAV: &str = "WAV";
-const TEXT_HEADER_ASR: &str = "ASR";
+const TEXT_HEADER_DURATION: &str = "DURATION";
+const TEXT_HEADER_SIZE: &str = "SIZE";
 const JSON_ID_KEY: &str = "\"id\"";
 const JSON_KIND_KEY: &str = "\"kind\"";
 const JSON_WAV_SIZE_KEY: &str = "\"wav_size\"";
@@ -46,8 +46,8 @@ fn files_list_text_prints_table_header_and_preloaded_recording() {
         .success()
         .stdout(contains(TEXT_HEADER_ID))
         .stdout(contains(TEXT_HEADER_KIND))
-        .stdout(contains(TEXT_HEADER_WAV))
-        .stdout(contains(TEXT_HEADER_ASR))
+        .stdout(contains(TEXT_HEADER_DURATION))
+        .stdout(contains(TEXT_HEADER_SIZE))
         .stdout(contains(SIM_BASENAME));
 }
 

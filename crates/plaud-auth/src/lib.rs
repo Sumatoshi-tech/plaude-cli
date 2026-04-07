@@ -1,4 +1,4 @@
-//! Auth token storage and bootstrap flows for plaude-cli.
+//! Auth token storage and bootstrap flows for plaude.
 //!
 //! The Plaud Note's BLE vendor protocol authenticates a session with
 //! a single pre-shared ASCII-hex token (see

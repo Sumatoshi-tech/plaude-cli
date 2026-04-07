@@ -1,4 +1,4 @@
-//! `plaude-cli files list` + `plaude-cli files pull-one`.
+//! `plaude files list` + `plaude files pull-one`.
 //!
 //! Both commands go through the authenticated [`TransportProvider`]
 //! chain established in M6. `list` prints a table (text) or an array
@@ -27,7 +27,7 @@ use crate::{
 };
 
 /// Column header row for the text output of `files list`.
-const TEXT_TABLE_HEADER: &str = "ID           KIND  STARTED              WAV        ASR";
+const TEXT_TABLE_HEADER: &str = "ID           KIND  STARTED              DURATION   SIZE";
 /// Human-readable message emitted by `pull-one` when the target files
 /// already exist at the expected sizes.
 const ALREADY_UP_TO_DATE_MSG: &str = "already up to date";
@@ -43,7 +43,7 @@ const PROGRESS_CHARS: &str = "=>-";
 /// without `--resume` or rewritten from scratch during a retry.
 const PARTIAL_FILE_REWRITE_CONTEXT: &str = "rewriting partial file";
 
-/// `plaude-cli files` subcommand tree.
+/// `plaude files` subcommand tree.
 #[derive(Debug, Subcommand)]
 pub(crate) enum FilesCommand {
     /// List every recording on the connected device.
@@ -52,7 +52,7 @@ pub(crate) enum FilesCommand {
     PullOne(PullOneArgs),
 }
 
-/// Arguments for `plaude-cli files list`.
+/// Arguments for `plaude files list`.
 #[derive(Debug, Args)]
 pub(crate) struct ListArgs {
     /// Output format: `text` (default table) or `json`.
@@ -60,7 +60,7 @@ pub(crate) struct ListArgs {
     output: OutputFormat,
 }
 
-/// Arguments for `plaude-cli files pull-one`.
+/// Arguments for `plaude files pull-one`.
 #[derive(Debug, Args)]
 pub(crate) struct PullOneArgs {
     /// The recording id to pull. Matches the value printed in the
@@ -251,13 +251,16 @@ fn print_list(recordings: &[Recording], output: OutputFormat) -> Result<(), Disp
         OutputFormat::Text => {
             println!("{TEXT_TABLE_HEADER}");
             for r in recordings {
+                let datetime = format_unix_timestamp(r.started_at_unix_seconds());
+                let duration = estimate_duration(r);
+                let size = display_size(r);
                 println!(
-                    "{:<12} {:<5} {:<20} {:<10} {:<10}",
+                    "{:<12} {:<5} {:<20} {:<10} {}",
                     r.id().as_str(),
                     r.kind().name(),
-                    r.started_at_unix_seconds(),
-                    r.wav_size(),
-                    r.asr_size()
+                    datetime,
+                    duration,
+                    size,
                 );
             }
             Ok(())
@@ -268,6 +271,71 @@ fn print_list(recordings: &[Recording], output: OutputFormat) -> Result<(), Disp
             println!("{rendered}");
             Ok(())
         }
+    }
+}
+
+/// Format a Unix timestamp as `YYYY-MM-DD HH:MM:SS` in the system's
+/// local timezone. Cross-platform via the `jiff` crate.
+fn format_unix_timestamp(epoch_secs: i64) -> String {
+    let Ok(ts) = jiff::Timestamp::from_second(epoch_secs) else {
+        return format!("{epoch_secs}");
+    };
+    let zdt = ts.to_zoned(jiff::tz::TimeZone::system());
+    format!(
+        "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+        zdt.year(),
+        zdt.month(),
+        zdt.day(),
+        zdt.hour(),
+        zdt.minute(),
+        zdt.second(),
+    )
+}
+
+/// Estimate recording duration from file sizes.
+/// BLE ASR: each 80-byte Opus frame = 20ms.
+/// USB WAV: PCM 16-bit mono 16kHz = 32000 bytes/sec.
+fn estimate_duration(r: &Recording) -> String {
+    let total_secs = if r.asr_size() > 0 {
+        // Opus: 80 bytes per 20ms frame
+        (r.asr_size() as f64 / 80.0) * 0.02
+    } else if r.wav_size() > 0 {
+        // PCM: 16-bit mono 16kHz = 32000 B/s, minus ~512 byte header
+        let data = r.wav_size().saturating_sub(512);
+        data as f64 / 32000.0
+    } else {
+        return "—".to_owned();
+    };
+    let mins = total_secs as u64 / 60;
+    let secs = total_secs as u64 % 60;
+    if mins > 0 {
+        format!("{mins}m {secs:02}s")
+    } else {
+        format!("{secs}s")
+    }
+}
+
+/// Show the available file size — only the non-zero one.
+fn display_size(r: &Recording) -> String {
+    if r.wav_size() > 0 && r.asr_size() > 0 {
+        format!("{} wav, {} asr", format_bytes(r.wav_size()), format_bytes(r.asr_size()))
+    } else if r.wav_size() > 0 {
+        format!("{} wav", format_bytes(r.wav_size()))
+    } else if r.asr_size() > 0 {
+        format!("{} asr", format_bytes(r.asr_size()))
+    } else {
+        "—".to_owned()
+    }
+}
+
+/// Human-readable byte size.
+fn format_bytes(bytes: u64) -> String {
+    if bytes >= 1_048_576 {
+        format!("{:.1} MB", bytes as f64 / 1_048_576.0)
+    } else if bytes >= 1024 {
+        format!("{:.1} KB", bytes as f64 / 1024.0)
+    } else {
+        format!("{bytes} B")
     }
 }
 
@@ -328,12 +396,10 @@ mod tests {
 
     #[test]
     fn text_table_header_and_file_extensions_are_stable() {
-        // Mutation target: any rename of these constants breaks
-        // downstream scripts that parse the text output.
         assert!(TEXT_TABLE_HEADER.starts_with("ID"));
         assert!(TEXT_TABLE_HEADER.contains("KIND"));
-        assert!(TEXT_TABLE_HEADER.contains("WAV"));
-        assert!(TEXT_TABLE_HEADER.contains("ASR"));
+        assert!(TEXT_TABLE_HEADER.contains("DURATION"));
+        assert!(TEXT_TABLE_HEADER.contains("SIZE"));
         assert_eq!(WAV_EXTENSION, "wav");
         assert_eq!(ASR_EXTENSION, "asr");
         assert!(ALREADY_UP_TO_DATE_MSG.contains("up to date"));

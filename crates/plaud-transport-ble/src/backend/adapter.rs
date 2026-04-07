@@ -8,8 +8,10 @@
 use std::time::Duration;
 
 use async_trait::async_trait;
-use btleplug::api::{Central, Characteristic, Manager as _, Peripheral as _, ScanFilter, WriteType};
-use btleplug::platform::{Adapter, Manager, Peripheral};
+use btleplug::{
+    api::{Central, Characteristic, Manager as _, Peripheral as _, ScanFilter, WriteType},
+    platform::{Adapter, Manager, Peripheral},
+};
 use bytes::Bytes;
 use futures::stream::StreamExt;
 use plaud_domain::{BatteryLevel, DeviceCandidate, TransportHint};
@@ -17,10 +19,7 @@ use plaud_transport::{Error, Result};
 use tokio::sync::mpsc;
 use uuid::Uuid;
 
-use crate::battery::BatteryReader;
-use crate::channel::BleChannel;
-use crate::constants::DEFAULT_CHANNEL_CAPACITY;
-use crate::discovery::ScanProvider;
+use crate::{battery::BatteryReader, channel::BleChannel, constants::DEFAULT_CHANNEL_CAPACITY, discovery::ScanProvider};
 
 // ---------------------------------------------------------------------------
 // GATT UUIDs from docs/protocol/ble-gatt.md

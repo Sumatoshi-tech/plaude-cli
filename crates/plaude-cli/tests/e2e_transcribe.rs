@@ -1,9 +1,9 @@
-//! End-to-end tests for `plaude-cli transcribe`.
+//! End-to-end tests for `plaude transcribe`.
 //!
 //! Tests use a mock whisper binary (shell script) that echoes back
 //! predictable output instead of actually running whisper.cpp.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M15-whisper-transcribe.md
+//! Journey: specs/plaude-v1/journeys/M15-whisper-transcribe.md
 
 use std::fs;
 #[cfg(unix)]
@@ -13,7 +13,7 @@ use assert_cmd::Command;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const EX_USAGE: i32 = 2;
 const EX_UNAVAILABLE: i32 = 69;
 const EX_RUNTIME: i32 = 1;

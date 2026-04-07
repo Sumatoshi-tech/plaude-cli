@@ -55,6 +55,22 @@ pub const OPCODE_1E_FILE_ID: u16 = 0x001E;
 /// Opcode `0x0026` — three `u32 LE` integers. Exact semantics TBD by M11.
 pub const OPCODE_26_CONFIG_TRIPLE: u16 = 0x0026;
 
+/// `StartRecording` — two `u8` args: `(action, scene)`.
+/// APK builder `C9569h0(int, int)`, Flutter action `action/startRecord`.
+pub const OPCODE_START_RECORDING: u16 = 0x0014;
+
+/// `PauseRecording` — `u32 LE` timestamp + `u8` mode.
+/// APK builder `C9565f0(long, int)`, Flutter action `action/pauseRecord`.
+pub const OPCODE_PAUSE_RECORDING: u16 = 0x0015;
+
+/// `ResumeRecording` — `u32 LE` timestamp + `u8` mode.
+/// APK builder `C9567g0(long, int)`, Flutter action `action/resumeRecord`.
+pub const OPCODE_RESUME_RECORDING: u16 = 0x0016;
+
+/// `StopRecording` — two `u8` args: `(scene, action)` (note: swapped
+/// vs start). APK builder `C9571i0(int, int)`, Flutter action `action/stopRecord`.
+pub const OPCODE_STOP_RECORDING: u16 = 0x0017;
+
 /// `SetPrivacy` — single `u8` boolean (0 off, 1 on).
 pub const OPCODE_SET_PRIVACY: u16 = 0x0067;
 

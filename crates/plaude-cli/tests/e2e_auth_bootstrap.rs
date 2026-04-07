@@ -1,16 +1,16 @@
-//! End-to-end tests for `plaude-cli auth bootstrap`.
+//! End-to-end tests for `plaude auth bootstrap`.
 //!
 //! Runs against `--backend sim` — the CLI spawns a hermetic loopback
 //! peripheral and a fake phone that writes a deterministic auth
 //! token. The real BlueZ peripheral lands in a later milestone.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M08-auth-bootstrap-peripheral.md
+//! Journey: specs/plaude-v1/journeys/M08-auth-bootstrap-peripheral.md
 
 use assert_cmd::Command;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const BACKEND_FLAG: &str = "--backend";
 const BACKEND_SIM: &str = "sim";
 const BACKEND_BLE: &str = "ble";
@@ -46,13 +46,16 @@ fn auth_bootstrap_sim_stores_token_so_auth_show_sees_it_afterwards() {
 }
 
 #[test]
-fn auth_bootstrap_ble_backend_is_not_yet_wired() {
+fn auth_bootstrap_ble_backend_does_not_panic() {
+    // The real BlueZ peripheral either advertises (if adapter present)
+    // or fails with a runtime error. We just verify it doesn't panic.
     let tmp = tempfile::tempdir().expect("tempdir");
-    cmd(&tmp)
-        .args([BACKEND_FLAG, BACKEND_BLE, "auth", "bootstrap"])
-        .assert()
-        .code(UNAVAILABLE_EXIT)
-        .stderr(contains("not yet wired"));
+    let assert = cmd(&tmp)
+        .args([BACKEND_FLAG, BACKEND_BLE, "auth", "bootstrap", "--timeout", "2"])
+        .assert();
+    let code = assert.get_output().status.code().unwrap_or(-1);
+    // Accept: 0 (success), 1 (runtime: timeout/BlueZ), 69 (unavailable)
+    assert!(code == 0 || code == 1 || code == UNAVAILABLE_EXIT, "unexpected exit code: {code}");
 }
 
 #[test]

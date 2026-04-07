@@ -3,13 +3,13 @@
 //! Verifies the sysexits(3)-aligned exit codes documented in
 //! `docs/usage/exit-codes.md`.
 //!
-//! Journey: specs/plaude-cli-v1/journeys/M12-hardening.md
+//! Journey: specs/plaude-v1/journeys/M12-hardening.md
 
 use assert_cmd::Command;
 use predicates::str::contains;
 use tempfile::TempDir;
 
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 const BACKEND_BLE: &str = "ble";
 const EX_UNAVAILABLE: i32 = 69;
 const EX_NOPERM: i32 = 77;

@@ -1,4 +1,4 @@
-//! `plaude-cli auth` subcommand tree.
+//! `plaude auth` subcommand tree.
 //!
 //! Four subcommands drive the `plaud-auth` storage layer:
 //!
@@ -22,7 +22,7 @@ use crate::{DispatchError, commands::backend::Backend};
 /// [`FileStore::default_path`].
 const SANDBOX_TOKEN_FILE_NAME: &str = "token";
 
-/// Default timeout used by `plaude-cli auth bootstrap` when the user
+/// Default timeout used by `plaude auth bootstrap` when the user
 /// does not pass `--timeout`. Matches the M8 DoD "default 120 s".
 const DEFAULT_BOOTSTRAP_TIMEOUT_SECS: u64 = 120;
 
@@ -31,11 +31,7 @@ const DEFAULT_BOOTSTRAP_TIMEOUT_SECS: u64 = 120;
 /// M8 e2e test asserts the CLI captures and stores this exact value.
 const SIM_BOOTSTRAP_TOKEN: &str = "abcdef0123456789abcdef0123456789";
 
-/// Capability string surfaced by the `--backend ble` branch of
-/// `auth bootstrap` until the real BlueZ peripheral is wired up.
-const CAP_BLE_BOOTSTRAP_BACKEND: &str = "ble-hardware-backend";
-
-/// `plaude-cli auth` subcommand tree.
+/// `plaude auth` subcommand tree.
 #[derive(Debug, Subcommand)]
 pub(crate) enum AuthCommand {
     /// Store a 16- or 32-character ASCII-hex token.
@@ -60,7 +56,7 @@ pub(crate) enum AuthCommand {
     Bootstrap(BootstrapArgs),
 }
 
-/// Arguments for `plaude-cli auth bootstrap`.
+/// Arguments for `plaude auth bootstrap`.
 #[derive(Debug, Args)]
 pub(crate) struct BootstrapArgs {
     /// Budget in seconds to wait for the phone's auth write.
@@ -137,7 +133,7 @@ async fn show(store: &dyn AuthStore) -> Result<(), DispatchError> {
             Ok(())
         }
         None => Err(DispatchError::Usage(
-            "no token stored; run `plaude-cli auth set-token <hex>` or `plaude-cli auth import <log>`".to_owned(),
+            "no token stored; run `plaude auth set-token <hex>` or `plaude auth import <log>`".to_owned(),
         )),
     }
 }
@@ -154,9 +150,7 @@ async fn clear(store: &dyn AuthStore) -> Result<(), DispatchError> {
 async fn bootstrap(store: &dyn AuthStore, args: BootstrapArgs, backend: Backend) -> Result<(), DispatchError> {
     match backend {
         Backend::Sim => bootstrap_sim(store, args).await,
-        Backend::Ble => Err(DispatchError::Unavailable(format!(
-            "`auth bootstrap` is not yet wired for real BLE; capability={CAP_BLE_BOOTSTRAP_BACKEND}"
-        ))),
+        Backend::Ble => bootstrap_ble(store, args).await,
         Backend::Usb => Err(DispatchError::Usage(
             "`auth bootstrap` is a BLE-peripheral flow; use `--backend sim` or wait for the btleplug backend".to_owned(),
         )),
@@ -180,6 +174,21 @@ async fn bootstrap_sim(store: &dyn AuthStore, args: BootstrapArgs) -> Result<(),
         .map_err(|e| DispatchError::Runtime(format!("session task join failed: {e}")))?
         .map_err(map_bootstrap_error)?;
     drop(phone);
+    let fingerprint = token_fingerprint(&outcome.token);
+    store
+        .put_token(DEFAULT_DEVICE_ID, outcome.token)
+        .await
+        .map_err(|e| DispatchError::Runtime(format!("failed to store captured token: {e}")))?;
+    println!("Token captured. Fingerprint: {fingerprint}");
+    Ok(())
+}
+
+async fn bootstrap_ble(store: &dyn AuthStore, args: BootstrapArgs) -> Result<(), DispatchError> {
+    use plaud_transport_ble::bootstrap::bluer_peripheral::run_bluer_bootstrap;
+
+    let outcome = run_bluer_bootstrap(std::time::Duration::from_secs(args.timeout))
+        .await
+        .map_err(map_bootstrap_error)?;
     let fingerprint = token_fingerprint(&outcome.token);
     store
         .put_token(DEFAULT_DEVICE_ID, outcome.token)

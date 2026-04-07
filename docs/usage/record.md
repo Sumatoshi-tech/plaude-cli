@@ -1,58 +1,26 @@
-# `plaude-cli record` — remote recording pipeline control
+# Recording Control
 
-## Overview
-
-The `record` subcommand tree lets you start, stop, pause, and resume
-a recording on the connected Plaud device from the command line. Each
-action maps directly to the corresponding vendor BLE opcode.
-
-All recording commands require an authenticated transport (a stored
-token). If no token is stored, the command exits with code 77
-(`EX_NOPERM`). If the device rejects the token, exit code 78
-(`EX_CONFIG`).
+Start, stop, pause, and resume recordings remotely over Bluetooth.
 
 ## Commands
 
-### `record start`
+```bash
+plaude record start    # start a new recording
+plaude record pause    # pause the current recording
+plaude record resume   # resume a paused recording
+plaude record stop     # stop and finalize the recording
+```
 
-Start a new recording. Fails if a recording is already in progress.
+Each command prints a confirmation:
 
 ```
-$ plaude-cli --backend sim record start
 recording started
-```
-
-### `record stop`
-
-Stop the current recording and finalise the `.WAV`/`.ASR` pair. Fails
-if no recording is in progress.
-
-```
-$ plaude-cli --backend sim record stop
+recording paused
+recording resumed
 recording stopped
 ```
 
-### `record pause`
-
-Pause the current recording. Fails if not currently recording.
-
-```
-$ plaude-cli --backend sim record pause
-recording paused
-```
-
-### `record resume`
-
-Resume a paused recording. Fails if the recording is not paused.
-
-```
-$ plaude-cli --backend sim record resume
-recording resumed
-```
-
 ## State machine
-
-The device enforces a simple state machine:
 
 ```
          start          pause
@@ -60,19 +28,18 @@ Idle ──────────► Recording ──────► Paused
   ▲                │                  │
   │    stop        │       stop       │
   └────────────────┘                  │
-  │                                   │
+  │              resume               │
   └───────────────────────────────────┘
-                resume (back to Recording)
 ```
 
-Invalid transitions (e.g. `stop` when idle, `pause` when paused)
-return a protocol error and exit with code 1.
+Invalid transitions (e.g. `stop` when idle) return exit code 1 with an error message.
 
-## Exit codes
+## Typical workflow
 
-| Code | Meaning |
-|---|---|
-| 0 | Success |
-| 1 | Runtime/protocol error (invalid state transition) |
-| 77 | No auth token stored |
-| 78 | Device rejected the stored token |
+```bash
+plaude record start
+# ... recording for a while ...
+plaude record stop
+plaude files list              # see the new recording
+plaude files pull-one <ID> -o ~/plaud
+```

@@ -1,95 +1,65 @@
 # Troubleshooting
 
-## Common errors and resolutions
+## "no PLAUD_NOTE device found"
 
-### Exit 69 — "the `ble` backend is not yet wired"
+- Is the device turned on?
+- Is it within Bluetooth range (~10 meters)?
+- Wait 10–15 seconds after turning it on before trying
+- The device goes to sleep after inactivity — press the button to wake it
 
-The real BLE hardware backend is not yet implemented. Use one of:
+## "device rejected the stored token" (exit 78)
 
-- `--backend sim` for testing and development.
-- `--backend usb --mount /path/to/PLAUD_NOTE` for the USB fallback.
-
-### Exit 77 — "no auth token stored for this device"
-
-A command that requires device authentication was run without a stored
-token. Fix:
+Your token is stale or for a different device.
 
 ```bash
-# Option 1: bootstrap from the phone app (sim path for now)
-plaude-cli --backend sim auth bootstrap
-
-# Option 2: manually enter a token
-plaude-cli auth set-token <32-hex-chars>
-
-# Option 3: import from a btsnoop capture
-plaude-cli auth import /path/to/btsnoop_hci.log
+plaude auth clear
+plaude auth bootstrap    # re-capture from phone app
 ```
 
-### Exit 78 — "device rejected the stored token"
+## "no auth token stored" (exit 77)
 
-The device rejected the stored auth token. The token may be stale or
-for a different device. Fix:
+You haven't set up authentication yet.
 
 ```bash
-plaude-cli auth clear
-plaude-cli auth bootstrap
+plaude auth bootstrap    # automatic capture
+# or
+plaude auth set-token <32-hex-chars>
 ```
 
-### "protocol error: invalid recording-state transition"
+## "operation timed out" (exit 69)
 
-A recording control command (`record start/stop/pause/resume`) was
-issued in a state that doesn't allow that transition. For example:
+The device didn't respond in time. Common causes:
+- Device went to sleep during the operation
+- Too many rapid reconnections — wait 15 seconds between commands
+- BLE adapter issue — try `bluetoothctl power off && bluetoothctl power on`
 
-- `record stop` when no recording is in progress.
-- `record pause` when the device is idle.
-- `record start` when already recording.
+## "protocol error: control response opcode mismatch"
 
-Check the device's current state before issuing the command.
+Stale notifications from a previous connection. Wait 15 seconds and try again.
 
-### "not found: <setting-name>"
+## Files list shows no recordings
 
-The setting exists in the CLI's enum but has no stored value on the
-device. Not all settings are initialised on all firmware versions. Use
-`settings list` to see which settings have values.
+The BLE file list only shows **unsynced** recordings. If the phone app already synced them, they won't appear. Options:
+- Make a new recording on the device, then list again
+- Use USB for a complete listing: `plaude --backend usb --mount /path files list`
 
-### "unknown setting name: <name>"
+## Download is very slow
 
-The setting name doesn't match any known `CommonSettingKey`. Run
-`settings list` to see valid names, or check `docs/usage/settings.md`
-for the full table.
+BLE transfers at ~500 bytes/second. A 25-second recording takes about 3 minutes. This is a Bluetooth limitation. For faster transfers:
+- Use USB: `plaude --backend usb --mount /path files pull-one <ID>`
+- Keep recordings short when using BLE
 
 ## Enabling debug logs
 
-Set the `RUST_LOG` environment variable:
-
 ```bash
-# Human-readable text logs on stderr
-RUST_LOG=debug plaude-cli --backend sim battery
-
-# JSON-formatted logs for log aggregators
-RUST_LOG=info plaude-cli --backend sim --log-format json battery
+RUST_LOG=debug plaude battery
+RUST_LOG=plaud_transport_ble=debug plaude files list
 ```
 
-Log output goes to stderr; stdout remains clean for command output.
+Logs go to stderr; command output stays on stdout.
 
-## Configuring timeouts
+## JSON logs for automation
 
 ```bash
-# Via CLI flag (seconds)
-plaude-cli --timeout 10 --backend sim battery
-
-# Via environment variable
-export PLAUDE_TIMEOUT=10
-plaude-cli --backend sim battery
+plaude --log-format json battery 2>log.json
 ```
-
-Default timeout is 30 seconds.
-
-## Filing a bug
-
-If you encounter an unexpected error:
-
-1. Reproduce with `RUST_LOG=debug` and capture stderr.
-2. Check the exit code: `echo $?`
-3. Note the firmware version: `plaude-cli device info` (if reachable).
-4. File an issue at the project repository with the above information.

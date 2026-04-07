@@ -1,13 +1,13 @@
-//! End-to-end test: `plaude-cli --help` prints usage and exits cleanly.
+//! End-to-end test: `plaude --help` prints usage and exits cleanly.
 //!
-//! Journey: `specs/plaude-cli-v1/journeys/M00-scaffold.md`
+//! Journey: `specs/plaude-v1/journeys/M00-scaffold.md`
 
 use assert_cmd::Command;
 use predicates::str::contains;
 
 /// The compiled binary name; matches `[[bin]] name` in `Cargo.toml`
 /// and the `--bin` target the `Makefile` passes to Cargo.
-const BIN_NAME: &str = "plaude-cli";
+const BIN_NAME: &str = "plaude";
 
 /// Token that must appear in a clap-generated help page.
 const HELP_USAGE_HEADER: &str = "Usage:";

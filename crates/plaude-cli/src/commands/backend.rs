@@ -225,11 +225,9 @@ impl BleProvider {
 #[async_trait]
 impl TransportProvider for BleProvider {
     async fn connect_anonymous(&self) -> TransportResult<Box<dyn Transport>> {
-        use std::sync::Arc;
-        use std::time::Duration;
+        use std::{sync::Arc, time::Duration};
 
-        use plaud_transport_ble::backend::connect_peripheral;
-        use plaud_transport_ble::{BleSession, BleTransport};
+        use plaud_transport_ble::{BleSession, BleTransport, backend::connect_peripheral};
         use tokio::sync::Mutex;
 
         let (channel, battery_reader) = connect_peripheral(Duration::from_secs(BLE_SCAN_TIMEOUT_SECS)).await?;
@@ -241,11 +239,9 @@ impl TransportProvider for BleProvider {
     }
 
     async fn connect_authenticated(&self, token: AuthToken) -> TransportResult<Box<dyn Transport>> {
-        use std::sync::Arc;
-        use std::time::Duration;
+        use std::{sync::Arc, time::Duration};
 
-        use plaud_transport_ble::backend::connect_peripheral;
-        use plaud_transport_ble::{BleSession, BleTransport};
+        use plaud_transport_ble::{BleSession, BleTransport, backend::connect_peripheral};
         use tokio::sync::Mutex;
 
         let (channel, battery_reader) = connect_peripheral(Duration::from_secs(BLE_SCAN_TIMEOUT_SECS)).await?;
