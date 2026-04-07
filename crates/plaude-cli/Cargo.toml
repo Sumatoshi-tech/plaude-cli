@@ -1,0 +1,39 @@
+[package]
+name = "plaude-cli"
+description = "Offline CLI for the Plaud Note voice recorder. No cloud, no phone app."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "plaude-cli"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+plaud-auth = { workspace = true }
+plaud-domain = { workspace = true }
+plaud-transport = { workspace = true }
+plaud-sim = { workspace = true }
+plaud-transport-ble = { workspace = true, features = ["btleplug-backend"] }
+plaud-transport-usb = { workspace = true }
+plaud-proto = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+indicatif = { workspace = true }
+sha2 = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+assert_cmd = { workspace = true }
+predicates = { workspace = true }
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

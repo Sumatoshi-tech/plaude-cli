@@ -1,0 +1,22 @@
+[package]
+name = "plaud-transport-usb"
+description = "USB Mass Storage fallback transport for Plaud devices (deprecated by vendor)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+plaud-domain = { workspace = true }
+plaud-transport = { workspace = true }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

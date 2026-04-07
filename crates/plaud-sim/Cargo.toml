@@ -1,0 +1,23 @@
+[package]
+name = "plaud-sim"
+description = "In-process device simulator used as the CI north star for plaude-cli."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+plaud-domain = { workspace = true }
+plaud-transport = { workspace = true }
+plaud-proto = { workspace = true }
+bytes = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[lints]
+workspace = true

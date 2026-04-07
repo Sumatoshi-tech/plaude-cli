@@ -1,0 +1,71 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/plaud-domain",
+    "crates/plaud-transport",
+    "crates/plaud-proto",
+    "crates/plaud-auth",
+    "crates/plaud-transport-ble",
+    "crates/plaud-transport-wifi",
+    "crates/plaud-transport-usb",
+    "crates/plaud-sim",
+    "crates/plaud-sync",
+    "crates/plaude-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/plaude-cli/plaude-cli"
+authors = ["plaude-cli contributors"]
+
+[workspace.dependencies]
+# Runtime
+clap = { version = "4.5", features = ["derive", "env"] }
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+zeroize = { version = "1.8", features = ["zeroize_derive"] }
+async-trait = "0.1"
+proptest = "1.6"
+bytes = "1.8"
+tokio = { version = "1.40", default-features = false, features = ["sync", "time", "macros", "rt", "rt-multi-thread", "fs"] }
+keyring = "3.6"
+sha2 = "0.10"
+dirs = "6.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+indicatif = "0.17"
+btleplug = "0.12"
+futures = "0.3"
+uuid = "1.16"
+
+# In-workspace crates
+plaud-domain = { path = "crates/plaud-domain" }
+plaud-transport = { path = "crates/plaud-transport" }
+plaud-proto = { path = "crates/plaud-proto" }
+plaud-auth = { path = "crates/plaud-auth" }
+plaud-transport-ble = { path = "crates/plaud-transport-ble" }
+plaud-transport-wifi = { path = "crates/plaud-transport-wifi" }
+plaud-transport-usb = { path = "crates/plaud-transport-usb" }
+plaud-sim = { path = "crates/plaud-sim" }
+plaud-sync = { path = "crates/plaud-sync" }
+
+# Build tools
+clap_mangen = "0.2"
+
+
+# Dev / test
+assert_cmd = "2.0"
+predicates = "3.1"
+tempfile = "3.12"
+
+[workspace.lints.rust]
+missing_docs = "deny"
+unused = { level = "deny", priority = -1 }
+rust_2024_compatibility = { level = "deny", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }

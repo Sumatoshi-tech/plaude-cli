@@ -1,0 +1,39 @@
+[package]
+name = "plaud-transport-ble"
+description = "BLE central transport for Plaud devices, built on btleplug."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+plaud-domain = { workspace = true }
+plaud-transport = { workspace = true }
+plaud-proto = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+bytes = { workspace = true }
+tracing = { workspace = true }
+btleplug = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+
+[features]
+# Compile the real btleplug-backed backend. Off by default in M5
+# because the backend is a thin stub that is not exercised in CI.
+# Enabled by dependents (including the `plaude-cli` binary) that
+# actually want to talk to real hardware.
+btleplug-backend = ["btleplug", "uuid", "futures"]
+# Real-hardware smoke tests. Requires a BLE adapter and a paired
+# Plaud Note in range. Enable locally with:
+#   cargo test -p plaud-transport-ble --features hw-tests
+hw-tests = ["btleplug-backend"]
+
+[lints]
+workspace = true

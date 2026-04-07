@@ -1,0 +1,32 @@
+[package]
+name = "plaud-auth"
+description = "Auth token storage (OS keyring + file) and bootstrap flows for plaude-cli."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+plaud-domain = { workspace = true }
+plaud-transport = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+tokio = { workspace = true }
+keyring = { workspace = true }
+sha2 = { workspace = true }
+dirs = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[features]
+# Off by default — the keyring integration tests require a running
+# secret-service daemon (Linux) or equivalent on the host, which is
+# absent in most CI environments. Enable locally with:
+#   cargo test -p plaud-auth --features keyring-tests
+keyring-tests = []
+
+[lints]
+workspace = true

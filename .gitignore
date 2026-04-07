@@ -1,0 +1,26 @@
+# Rust
+/target
+**/*.rs.bk
+Cargo.lock.bak
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Reverse-engineering raw evidence: may contain device serials, personal
+# audio, APK binaries, and pcaps. NEVER commit. Only sanitised analysis
+# documents (*.md) under specs/re/ are committable.
+specs/re/captures/apk/*.apk
+specs/re/captures/apk/*.apks
+specs/re/captures/apk/*.xapk
+specs/re/captures/apk/decompiled/
+specs/re/captures/apk/res/
+specs/re/captures/apk/*-strings.txt
+specs/re/captures/btsnoop/*.log
+specs/re/captures/btsnoop/*.att.csv
+specs/re/captures/pcap/*.pcap
+specs/re/captures/pcap/*.pcapng
+specs/re/captures/pcap/*.http.txt
+specs/re/captures/usb/*.raw
+specs/re/captures/**/unsanitised/
