@@ -20,6 +20,7 @@ plaud-auth = { workspace = true }
 plaud-domain = { workspace = true }
 plaud-transport = { workspace = true }
 plaud-sim = { workspace = true }
+plaud-llm = { workspace = true, optional = true }
 plaud-transport-ble = { workspace = true, features = ["btleplug-backend"] }
 plaud-transport-usb = { workspace = true }
 plaud-proto = { workspace = true }
@@ -38,9 +39,10 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
 [features]
-default = ["transcribe", "diarize"]
+default = ["transcribe", "diarize", "llm"]
 transcribe = ["whisper-rs", "hound", "ureq"]
 diarize = ["transcribe", "pyannote-rs"]
+llm = ["plaud-llm"]
 
 [dev-dependencies]
 assert_cmd = { workspace = true }

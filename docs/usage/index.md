@@ -52,6 +52,11 @@ plaude record stop                     # stop recording
 | [`auth set-token/show/clear/import`](auth.md) | Manage stored token | No |
 | [`auth bootstrap`](auth.md#bootstrap) | Capture token from phone app | No |
 | [`transcribe`](transcribe.md) | Transcribe WAV via whisper.cpp | No |
+| [`llm check`](llm.md#plaude-llm-check) | Verify LLM provider connectivity | No |
+| [`summarize`](llm.md#plaude-summarize-path) | Summarize transcripts using LLM | No |
+| [`summaries list/show/delete`](llm.md#plaude-summaries-list-path) | Manage recording summaries | No |
+| [`correct`](llm.md#plaude-correct-path) | Fix transcript errors using LLM | No |
+| [`template list/show/add/edit/delete`](llm.md#plaude-template) | Manage summarization templates | No |
 
 ## Backends
 

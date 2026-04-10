@@ -147,7 +147,26 @@ enum Commands {
     /// Mirror every recording on the device into a local directory.
     Sync(commands::sync::SyncArgs),
     /// Transcribe WAV files to text using a local whisper.cpp binary.
+    #[cfg(feature = "transcribe")]
     Transcribe(commands::transcribe::TranscribeArgs),
+    /// Manage LLM provider configuration and connectivity.
+    #[cfg(feature = "llm")]
+    #[command(subcommand)]
+    Llm(commands::llm::LlmCommand),
+    /// Summarize a recording transcript using an LLM.
+    #[cfg(feature = "llm")]
+    Summarize(commands::summarize::SummarizeArgs),
+    /// List, show, and delete recording summaries.
+    #[cfg(feature = "llm")]
+    #[command(subcommand)]
+    Summaries(commands::summaries::SummariesCommand),
+    /// Correct a transcript using an LLM to fix speech-to-text errors.
+    #[cfg(feature = "llm")]
+    Correct(commands::correct::CorrectArgs),
+    /// Manage summarization prompt templates.
+    #[cfg(feature = "llm")]
+    #[command(subcommand)]
+    Template(commands::template::TemplateCommand),
 }
 
 fn main() -> ExitCode {
@@ -251,7 +270,18 @@ fn dispatch(cli: Cli) -> Result<(), DispatchError> {
             let provider = cli.backend.provider(cli.mount.as_deref());
             runtime.block_on(commands::sync::run(sync_args, provider.as_ref(), config_dir))
         }
+        #[cfg(feature = "transcribe")]
         Some(Commands::Transcribe(transcribe_args)) => commands::transcribe::run(transcribe_args),
+        #[cfg(feature = "llm")]
+        Some(Commands::Llm(llm_cmd)) => runtime.block_on(commands::llm::run(llm_cmd, config_dir)),
+        #[cfg(feature = "llm")]
+        Some(Commands::Summarize(summarize_args)) => runtime.block_on(commands::summarize::run(summarize_args, config_dir)),
+        #[cfg(feature = "llm")]
+        Some(Commands::Summaries(summaries_cmd)) => commands::summaries::run(summaries_cmd),
+        #[cfg(feature = "llm")]
+        Some(Commands::Correct(correct_args)) => runtime.block_on(commands::correct::run(correct_args, config_dir)),
+        #[cfg(feature = "llm")]
+        Some(Commands::Template(template_cmd)) => commands::template::run(template_cmd, config_dir),
     }
 }
 

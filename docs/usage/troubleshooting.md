@@ -49,6 +49,27 @@ BLE transfers at ~500 bytes/second. A 25-second recording takes about 3 minutes.
 - Use USB: `plaude --backend usb --mount /path files pull-one <ID>`
 - Keep recordings short when using BLE
 
+## LLM: "Status: unreachable"
+
+Ollama is not running or the model is not downloaded.
+
+```bash
+ollama serve                    # start Ollama
+ollama pull llama3.2:3b         # download default model
+plaude llm check                # verify connectivity
+```
+
+For cloud providers, set the API key and model in `~/.config/plaude/llm.toml`. See [LLM Integration](llm.md).
+
+## Summarize: "no transcript found"
+
+You need to transcribe the recording first:
+
+```bash
+plaude transcribe --quality high recording.wav > recording.txt
+plaude summarize recording.txt
+```
+
 ## Enabling debug logs
 
 ```bash
