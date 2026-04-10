@@ -103,8 +103,7 @@ const DIARIZE_EMBEDDING_MODEL: &str = "wespeaker_en_voxceleb_CAM++.onnx";
 
 /// Base URL for pyannote diarization model downloads (from pyannote-rs GitHub releases).
 #[cfg(feature = "diarize")]
-const DIARIZE_SEGMENTATION_URL: &str =
-    "https://github.com/thewh1teagle/pyannote-rs/releases/download/v0.1.0/segmentation-3.0.onnx";
+const DIARIZE_SEGMENTATION_URL: &str = "https://github.com/thewh1teagle/pyannote-rs/releases/download/v0.1.0/segmentation-3.0.onnx";
 
 /// Base URL for wespeaker embedding model downloads.
 #[cfg(feature = "diarize")]

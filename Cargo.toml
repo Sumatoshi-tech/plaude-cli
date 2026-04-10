@@ -10,6 +10,7 @@ members = [
     "crates/plaud-transport-usb",
     "crates/plaud-sim",
     "crates/plaud-sync",
+    "crates/plaud-llm",
     "crates/plaude-cli",
 ]
 
@@ -40,11 +41,13 @@ serde_json = "1.0"
 indicatif = "0.17"
 jiff = "0.2"
 opus-decoder = "0.1"
-whisper-rs = "0.16"
+whisper-rs = { version = "0.16", features = ["cuda", "vulkan"] }
 hound = "3.5"
 ureq = "3.3"
 pyannote-rs = "0.3"
 btleplug = "0.12"
+genai = "0.5"
+toml = "0.8"
 bluer = { version = "0.17", features = ["bluetoothd"] }
 futures = "0.3"
 uuid = "1.16"
@@ -59,6 +62,7 @@ plaud-transport-wifi = { path = "crates/plaud-transport-wifi" }
 plaud-transport-usb = { path = "crates/plaud-transport-usb" }
 plaud-sim = { path = "crates/plaud-sim" }
 plaud-sync = { path = "crates/plaud-sync" }
+plaud-llm = { path = "crates/plaud-llm" }
 
 # Build tools
 clap_mangen = "0.2"

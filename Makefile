@@ -7,12 +7,34 @@ TARGET_DIR ?= target
 VERSION   = $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 GIT_COMMIT = $(shell git rev-parse --short HEAD 2>/dev/null || echo "none")
 
+# sccache: caches C/C++ compilation across clean builds.
+# Cuts rebuild of whisper-rs-sys, aws-lc-sys, ort-sys from ~3min to ~10s.
+ifneq (,$(shell command -v sccache 2>/dev/null))
+  export RUSTC_WRAPPER := sccache
+endif
+
+# CUDA build support: CUDA 12.9 requires GCC 14 as host compiler
+# on Fedora 43+ (GCC 15 headers are incompatible with nvcc).
+ifneq (,$(wildcard /usr/local/cuda/bin/nvcc))
+  export PATH := /usr/local/cuda/bin:$(PATH)
+  ifneq (,$(wildcard /usr/bin/gcc-14))
+    export CC  := /usr/bin/gcc-14
+    export CXX := /usr/bin/g++-14
+    export CMAKE_CUDA_HOST_COMPILER := /usr/bin/gcc-14
+  endif
+endif
+
 all: build
 
 # Build all binaries
 .PHONY: build
 build:
 	$(CARGO) build --profile $(PROFILE) --bin plaude
+
+# Fast dev build — skip transcribe/diarize C++ deps (~5s vs ~4min)
+.PHONY: build-fast
+build-fast:
+	$(CARGO) build --bin plaude --no-default-features --features llm
 
 # Show help
 .PHONY: help
@@ -42,9 +64,13 @@ man: build
 	fi
 
 # Install binaries (and man pages if generated)
+# Uses `cp` from the build output instead of `cargo install`, which
+# would recompile everything in its own target directory.
 .PHONY: install
 install: build
-	$(CARGO) install --path crates/plaude-cli --bin plaude
+	@mkdir -p $(HOME)/.cargo/bin
+	cp $(TARGET_DIR)/$(PROFILE)/plaude $(HOME)/.cargo/bin/plaude
+	@echo "Installed plaude to $(HOME)/.cargo/bin/plaude"
 	@if [ -f $(TARGET_DIR)/man/plaude.1 ]; then \
 		mkdir -p $(HOME)/.local/share/man/man1; \
 		cp $(TARGET_DIR)/man/plaude.1 $(HOME)/.local/share/man/man1/; \

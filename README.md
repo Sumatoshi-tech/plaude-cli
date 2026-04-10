@@ -9,7 +9,9 @@ Connects directly over Bluetooth — **no cloud, no phone app** needed after a o
 - **Download recordings** from the device to your computer
 - **Start/stop/pause/resume recording** remotely from the command line
 - **Read battery, storage, and device settings** over Bluetooth
-- **Transcribe recordings** offline via whisper.cpp
+- **Transcribe recordings** offline via whisper.cpp (GPU-accelerated with CUDA/Vulkan)
+- **Summarize recordings** using LLM (Ollama, OpenAI, Anthropic) with customizable templates
+- **Correct transcripts** using LLM to fix speech-to-text errors, punctuation, and filler words
 - **Sanitised export** that strips the forensic serial watermark from WAV files
 
 ## Install
@@ -66,8 +68,19 @@ plaude settings set mic-gain 20
 # Sync everything
 plaude sync ~/plaud-recordings
 
-# Transcribe (requires whisper.cpp)
-plaude transcribe --model ~/models/ggml-base.bin ~/plaud/recording.wav
+# Transcribe (GPU-accelerated, auto-downloads model)
+plaude transcribe --quality high ~/plaud/recording.wav
+
+# Summarize with LLM (Ollama, OpenAI, Anthropic)
+plaude summarize ~/plaud/recording.txt
+plaude summarize --template action-items ~/plaud/recording.txt
+
+# Correct transcript errors
+plaude correct ~/plaud/recording.txt
+
+# Manage summaries
+plaude summaries list ~/plaud/
+plaude summaries show ~/plaud/ --template meeting-notes
 ```
 
 ## Documentation

@@ -115,8 +115,17 @@ plaude record start
 plaude record stop
 plaude files list
 plaude files pull-one <ID> -o ~/plaud
-plaude transcribe --quality fast ~/plaud/<ID>.wav
+plaude transcribe --quality high ~/plaud/<ID>.wav > ~/plaud/<ID>.txt
+
+# Summarize the transcript
+plaude summarize ~/plaud/<ID>.txt
+plaude summarize --template action-items ~/plaud/<ID>.txt
+
+# Fix transcription errors (optional)
+plaude correct ~/plaud/<ID>.txt
 ```
+
+See [LLM Integration](llm.md) for full summarization and correction documentation.
 
 ## Progress and tips
 
